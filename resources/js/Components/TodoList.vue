@@ -1,38 +1,59 @@
 <template>
-    <div class="todo-container">
-      <h2 class="title">Todo List</h2>
-  
-      <!-- Form to Add a Task -->
-      <form @submit.prevent="addTask" class="task-form">
-        <input
-          v-model="newTask"
-          type="text"
-          placeholder="Add a new task"
-          required
-          class="task-input"
-        />
-        <button type="submit" class="add-task-button">Add Task</button>
-      </form>
-  
-      <!-- Display Tasks -->
-      <ul class="task-list">
-        <li v-for="task in tasks" :key="task.id" class="task-item">
+  <div class="max-w-lg mx-auto p-8 bg-gradient-to-r from-pink-100 to-pink-200 rounded-2xl shadow-md">
+    <h2 class="text-center text-3xl font-poppins font-semibold text-gray-700 mb-6">
+      To-do List
+    </h2>
+
+    <!-- Form to Add a Task -->
+    <form @submit.prevent="addTask" class="flex gap-4 mb-6">
+      <input
+        v-model="newTask"
+        type="text"
+        placeholder="Add a new task"
+        required
+        class="flex-grow px-5 py-3 border-2 border-pink-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 text-lg placeholder-pink-300"
+      />
+      <button
+        type="submit"
+        class="px-6 py-3 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transform transition-all duration-200"
+      >
+        Add
+      </button>
+    </form>
+
+    <!-- Display Tasks -->
+    <ul class="space-y-4">
+      <li
+        v-for="task in tasks"
+        :key="task.id"
+        class="flex items-center justify-between bg-white shadow-sm rounded-lg py-4 px-5 hover:bg-pink-50 transition-all duration-200"
+      >
+        <div class="flex items-center">
           <input
             type="checkbox"
             v-model="task.completed"
             @change="updateTask(task)"
-            class="task-checkbox"
+            class="w-5 h-5 text-pink-500 border-2 border-pink-400 rounded-full focus:ring-0"
           />
-          <span :class="{ completed: task.completed }" class="task-text">
+          <span
+            :class="{ 'line-through text-gray-400': task.completed }"
+            class="ml-4 text-lg text-gray-700 font-medium"
+          >
             {{ task.task }}
           </span>
-          <button @click="deleteTask(task.id)" class="delete-button">Delete</button>
-        </li>
-      </ul>
-    </div>
-  </template>
-  
-  <script>
+        </div>
+        <button
+          @click="deleteTask(task.id)"
+          class="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 text-sm focus:outline-none"
+        >
+          Delete
+        </button>
+      </li>
+    </ul>
+  </div>
+</template>
+
+<script>
 import axios from "axios";
 
 export default {
@@ -131,118 +152,3 @@ export default {
 };
 </script>
 
-  
-<style scoped>
-.todo-container {
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 20px;
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
-  font-family: 'Arial', sans-serif;
-}
-
-.title {
-  text-align: center;
-  font-size: 2rem;
-  color: #4a4a4a;
-  margin-bottom: 20px;
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-}
-
-.task-form {
-  display: flex;
-  margin-bottom: 20px;
-  gap: 12px;
-}
-
-.task-input {
-  flex-grow: 1;
-  padding: 12px;
-  font-size: 1rem;
-  border: 1px solid #dcdcdc;
-  border-radius: 6px;
-  background-color: #f5f5f5;
-  transition: border-color 0.3s ease;
-}
-
-.task-input:focus {
-  outline: none;
-  border-color: #eed42b;
-}
-
-.add-task-button {
-  padding: 12px 18px;
-  background-color: #38a169;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1rem;
-  font-weight: bold;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.add-task-button:hover {
-  background-color: #2f855a;
-  transform: translateY(-2px);
-}
-
-.task-list {
-  list-style-type: none;
-  padding: 0;
-  margin: 0;
-}
-
-.task-item {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.task-item:last-child {
-  border-bottom: none;
-}
-
-.task-checkbox {
-  margin-right: 14px;
-  width: 18px;
-  height: 18px;
-}
-
-.task-text {
-  flex-grow: 1;
-  font-size: 1rem;
-  color: #4a4a4a;
-  word-break: break-word;
-  transition: color 0.3s ease, text-decoration 0.3s ease;
-}
-
-.completed {
-  text-decoration: line-through;
-  color: #a0aec0;
-}
-
-.delete-button {
-  background-color: #e53e3e;
-  color: white;
-  border: none;
-  padding: 6px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: bold;
-  transition: background-color 0.3s ease, transform 0.2s ease;
-}
-
-.delete-button:hover {
-  background-color: #c53030;
-  transform: translateY(-2px);
-}
-</style>
-
-  
