@@ -32,21 +32,41 @@ class TaskController extends Controller
     }
 
     // Update the completion status of a task
-    public function update(Request $request, $id)
-    {
-        // Validate that 'completed' is either true or false
-        $request->validate([
-            'completed' => 'required|boolean',
-        ]);
+    // Update task (completion status or task text)
+public function update(Request $request, $id)
+{
+    // Validate the input
+    $request->validate([
+        'completed' => 'nullable|boolean', // Optional field
+        'task' => 'nullable|string|max:255', // Optional field
+    ]);
 
-        // Find and update the task
-        $task = auth()->user()->tasks()->findOrFail($id);
-        $task->update([
-            'completed' => $request->completed,  // Update the completion status
-        ]);
+    // Find the task
+    $task = auth()->user()->tasks()->findOrFail($id);
 
-        return response()->json($task);
-    }
+    // Update the task fields dynamically
+    $task->update($request->only(['task', 'completed']));
+
+    return response()->json($task); // Return the updated task
+}
+
+    // Update the task text
+public function editTask(Request $request, $id)
+{
+    // Validate the input
+    $request->validate([
+        'task' => 'required|string|max:255', // Ensure the new task name is valid
+    ]);
+
+    // Find the task and update the task field
+    $task = auth()->user()->tasks()->findOrFail($id);
+    $task->update([
+        'task' => $request->task,
+    ]);
+
+    return response()->json($task); // Return the updated task
+}
+
 
     // Delete a task for the authenticated user
     public function destroy($id) 

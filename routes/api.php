@@ -20,6 +20,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/tasks', [TaskController::class, 'index']);  // Get all tasks for the authenticated user
     Route::post('/tasks', [TaskController::class, 'store']);  // Store a new task for the authenticated user
     Route::patch('/tasks/{id}', [TaskController::class, 'update']);  // Update a task for the authenticated user
+    Route::patch('/tasks/{id}/edit', [TaskController::class, 'editTask']);  // Edit the task text for the authenticated user
     Route::delete('/tasks/{id}', [TaskController::class, 'destroy']);  // Delete a task for the authenticated user
 });
-

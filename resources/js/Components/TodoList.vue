@@ -42,14 +42,48 @@
             {{ task.task }}
           </span>
         </div>
-        <button
-          @click="deleteTask(task.id)"
-          class="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 text-sm focus:outline-none"
-        >
-          Delete
-        </button>
+        <div class="flex gap-2">
+          <button
+            @click="openEditModal(task)"
+            class="px-4 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 text-sm focus:outline-none"
+          >
+            Edit
+          </button>
+          <button
+            @click="deleteTask(task.id)"
+            class="px-4 py-2 bg-red-500 text-white rounded-full hover:bg-red-600 text-sm focus:outline-none"
+          >
+            Delete
+          </button>
+        </div>
       </li>
     </ul>
+
+    <!-- Modal for Editing a Task -->
+    <div v-if="isModalVisible" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+      <div class="bg-white rounded-lg p-6 w-96 shadow-lg">
+        <h3 class="text-xl font-semibold text-gray-700 mb-4">Update Task</h3>
+        <input
+          v-model="editedTask"
+          type="text"
+          class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500"
+        />
+        <div class="flex justify-end gap-2 mt-4">
+          <button
+            @click="confirmEditTask"
+            class="px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600"
+          >
+            Confirm
+          </button>
+          <button
+            @click="closeModal"
+            class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400"
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -61,6 +95,9 @@ export default {
     return {
       tasks: [], // List of tasks
       newTask: "", // Holds the new task input
+      editedTask: "", // Task being edited
+      taskToEdit: null, // Task object to be updated
+      isModalVisible: false, // Modal visibility state
     };
   },
   mounted() {
@@ -72,7 +109,7 @@ export default {
     loadTasksFromLocalStorage() {
       const storedTasks = localStorage.getItem("tasks");
       if (storedTasks) {
-        this.tasks = JSON.parse(storedTasks); // Parse and set tasks from localStorage
+        this.tasks = JSON.parse(storedTasks);
       }
     },
 
@@ -87,7 +124,7 @@ export default {
         .get("/api/tasks")
         .then((response) => {
           this.tasks = response.data;
-          this.saveTasksToLocalStorage(); // Save fetched tasks to localStorage
+          this.saveTasksToLocalStorage();
         })
         .catch((error) => {
           console.error("Error fetching tasks:", error);
@@ -97,27 +134,27 @@ export default {
     // Add a new task
     addTask() {
       if (!this.newTask.trim()) {
-        alert("Task cannot be empty!");
         return;
       }
 
       const newTask = {
-        id: Date.now(), // Unique ID based on timestamp (local-only tasks)
+        id: Date.now(), // Temporary local-only ID
         task: this.newTask,
         completed: false,
       };
 
-      this.tasks.push(newTask); // Add the task to the list
-      this.saveTasksToLocalStorage(); // Save to localStorage
-      this.newTask = ""; // Clear the input field
+      // Add locally for instant UI update
+      this.tasks.push(newTask);
+      this.saveTasksToLocalStorage();
+      this.newTask = "";
 
-      // Optional: Save to backend if needed
+      // Save to the database
       axios
         .post("/api/tasks", { task: newTask.task })
         .then((response) => {
-          // Sync with backend task ID
+          // Update task ID with backend ID
           newTask.id = response.data.id;
-          this.saveTasksToLocalStorage(); // Save updated tasks
+          this.saveTasksToLocalStorage();
         })
         .catch((error) => {
           console.error("Error adding task to backend:", error);
@@ -126,9 +163,9 @@ export default {
 
     // Update task completion status
     updateTask(task) {
-      this.saveTasksToLocalStorage(); // Save updated status locally
+      this.saveTasksToLocalStorage(); // Save locally
 
-      // Optional: Save to backend if needed
+      // Update in the database
       axios
         .patch(`/api/tasks/${task.id}`, { completed: task.completed })
         .catch((error) => {
@@ -138,17 +175,56 @@ export default {
 
     // Delete a task
     deleteTask(id) {
-      this.tasks = this.tasks.filter((task) => task.id !== id); // Remove the task
-      this.saveTasksToLocalStorage(); // Save updated tasks to localStorage
+      this.tasks = this.tasks.filter((task) => task.id !== id);
+      this.saveTasksToLocalStorage();
 
-      // Optional: Delete from backend if needed
+      // Delete from the database
       axios
         .delete(`/api/tasks/${id}`)
         .catch((error) => {
           console.error("Error deleting task:", error);
         });
     },
+
+    // Open the modal for editing a task
+    openEditModal(task) {
+      this.editedTask = task.task;
+      this.taskToEdit = task;
+      this.isModalVisible = true;
+    },
+
+    // Close the modal
+    closeModal() {
+      this.isModalVisible = false;
+      this.editedTask = "";
+      this.taskToEdit = null;
+    },
+
+    // Confirm task edit and update in the database
+    confirmEditTask() {
+      if (this.editedTask.trim() && this.taskToEdit) {
+        const updatedTask = {
+          ...this.taskToEdit,
+          task: this.editedTask.trim(),
+        };
+
+        // Update locally for instant UI feedback
+        this.taskToEdit.task = updatedTask.task;
+        this.saveTasksToLocalStorage();
+
+        // Update in the database
+        axios
+          .patch(`/api/tasks/${updatedTask.id}`, { task: updatedTask.task })
+          .then(() => {
+            this.saveTasksToLocalStorage(); // Ensure local sync
+          })
+          .catch((error) => {
+            console.error("Error updating task in backend:", error);
+          });
+
+        this.closeModal(); // Close the modal after confirmation
+      }
+    },
   },
 };
 </script>
-
